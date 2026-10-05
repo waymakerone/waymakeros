@@ -109,6 +109,9 @@ POST /api/auth/email-otp/send-verification-otp   {email, type: "sign-in"}
 POST /api/auth/sign-in/email-otp                 {email, otp}
 ```
 
+For a user who has an authenticator set up, the second call answers `twoFactorRedirect: true` and
+no session, exactly as password sign-in does. See "Second factor" below.
+
 ### Email verification
 
 **Not required.** Accounts can sign in without verifying. Link-based verification is not available
@@ -138,10 +141,17 @@ POST /api/auth/two-factor/disable                 {password}
 
 - **Pass `issuer` with your app's name** on `enable`. Without it, the user's authenticator app shows
   a generic name and they cannot tell which account it is.
-- With a second factor on, password sign-in (`sign-in/email`) answers with
-  `twoFactorRedirect: true` and **no session**: show the code prompt, then `verify-totp`.
-- **The second factor applies to password sign-in.** If an app needs a second factor, keep
-  one-time-code sign-in off (`methods --otp off`), and ask Waymaker before combining the two.
+- With a second factor on, **both** password sign-in (`sign-in/email`) and emailed-code sign-in
+  (`sign-in/email-otp`) answer with `twoFactorRedirect: true` and **no session**: show the
+  authenticator prompt, then `verify-totp` (or `verify-backup-code`). Only that call starts the
+  session.
+- **Handle the two-factor step on every sign-in path the app has.** With codes on, the app needs
+  the authenticator prompt after code sign-in as well as after password sign-in. An app that
+  expects a session straight after the code leaves an enrolled user stuck, signed out.
+- **Test each path with an account that has an authenticator enrolled.** An account without one
+  never sees the step, so a test with it proves nothing about the step.
+- Before that test, run `waymaker host db auth deploy <app>` once so the app runs the current
+  sign-in service. It is safe to repeat.
 - Show the backup codes once and tell the user to keep them. They are what makes a lost phone
   self-service.
 
