@@ -24,7 +24,7 @@ and several of the failures are **silent**. Load a reference page when the job r
 | When the job involves | Read |
 |---|---|
 | Your app's own users signing in, password reset, verification, second factor | [references/sign-in.md](references/sign-in.md) |
-| The app sending email (receipts, notifications), sending domains, DNS for email | [references/email.md](references/email.md) |
+| The app sending email (receipts, notifications), its ready-made address, a client's own domain, sending health | [references/email.md](references/email.md) |
 | Files: buckets, uploads, signed links, getting a file from the app to storage | [references/storage.md](references/storage.md) |
 | Ambassadors: deploy, env, schedules, logs, calling one from the app | [references/ambassadors.md](references/ambassadors.md) |
 | The client's own domain on the app | [references/domains.md](references/domains.md) |
