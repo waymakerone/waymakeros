@@ -33,6 +33,8 @@ report success without doing what you meant. **Load the one for your job before 
 | Delete or archive anything in Commander | `waymakeros-commander` (§5) |
 | Work in a terminal inside the Commander Desktop Mac app (`TERM_PROGRAM=CommanderDesktop`) | `waymakeros-commander-desktop`, then `waymakeros-commander` |
 | Create a Host app, provision a database, run migrations, plan or apply a Solution release | `waymakeros-host` |
+| Add end-user sign-in or password reset, app email, file storage, an Ambassador or a custom domain to a Host app | `waymakeros-host` (its reference pages) |
+| Work out whether a Host failure is yours or the platform's | `waymakeros-host` ("Your fault or the platform's?") |
 
 A job that spans two layers needs both playbooks. For example, building an app in a repository
 and tracking it on a Commander taskboard means loading both `waymakeros-host` and

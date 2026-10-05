@@ -14,7 +14,7 @@ npx skills add waymakerone/waymakeros --skill waymakeros-host  # just one
 | [`waymakeros`](skills/waymakeros/SKILL.md) | first, whenever a Waymaker MCP server or the `waymaker` CLI is in use. It says which playbook below fits the job |
 | [`waymakeros-commander`](skills/waymakeros-commander/SKILL.md) | before creating or changing work in Commander: tasks, documents, sheets, goals, MyVault, mail |
 | [`waymakeros-commander-desktop`](skills/waymakeros-commander-desktop/SKILL.md) | when working in a terminal inside the Commander Desktop Mac app |
-| [`waymakeros-host`](skills/waymakeros-host/SKILL.md) | before creating an app, provisioning a database, writing migrations, or planning and applying a Solution release on Waymaker Host |
+| [`waymakeros-host`](skills/waymakeros-host/SKILL.md) | before creating an app, provisioning a database, writing migrations, or planning and applying a Solution release on Waymaker Host; and before adding end-user sign-in, app email, storage, Ambassadors or a custom domain (reference pages in `skills/waymakeros-host/references/`) |
 
 **Why these exist:** the WaymakerOS MCP and CLI describe *what* each command does. They do not say
 which order to run them in, which flags cannot be changed later, or which failures look like
