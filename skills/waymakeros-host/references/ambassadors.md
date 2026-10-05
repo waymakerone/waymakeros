@@ -69,10 +69,17 @@ Every Ambassador has an auth mode. Set it at create (`--auth`, or `auth_mode` on
 - **Scheduled runs never need the key.** When you invoke it by hand, you don't send it either:
   `waymaker host ambassadors invoke`, `host_ambassador_invoke` and the console's **Trigger** send it
   for you.
-- **Getting the key is a person's job.** Someone with deploy access opens the Ambassador in the
-  Host console and clicks **Show invoke key** (under Auth Mode, on its Overview). The CLI and the
-  MCP tools do not return it, by design: it is a standing credential. As an agent, ask the person
-  to put it into the calling app's environment variable themselves, not to paste it into the chat.
+- **Nobody needs to see the key to give it to an app in the same Solution.**
+  `waymaker host ambassadors link-key <ambassador> --app <app> --env PHOTOS_AMBASSADOR_KEY` (MCP:
+  `host_ambassador_link_key`) writes it into the app's environment on the server and never prints
+  it. Both must be in the same Solution, and you need the owner or releaser role on it. It takes
+  effect on the app's next deploy. The variable name must be server-side: no `_` prefix and no
+  browser-bundle prefix such as `VITE_` or `NEXT_PUBLIC_`.
+- **Seeing the key is a person's job.** For a caller outside the Solution, someone with deploy
+  access opens the Ambassador in the Host console and clicks **Show invoke key** (under Auth Mode,
+  on its Overview). The CLI and the MCP tools never return it, by design: it is a standing
+  credential. As an agent, ask the person to put it into the caller's environment themselves, not to
+  paste it into the chat.
 - **The key does not change between deploys**, so it is set once per caller. It can't be rotated
   yet. Keep it in server-side environment variables only (never in browser code or the repo), and
   if it may have leaked, ask Waymaker.
@@ -142,9 +149,10 @@ browser → app server route → POST <Ambassador URL> with its invoke key + you
 1. **Get the Ambassador's address** from `waymaker host ambassadors status <id>` (`URL`). Nothing
    puts it into the app for you. Set it as an app environment variable, for example
    `PHOTOS_AMBASSADOR_URL`.
-2. **Give the app the invoke key** (every mode except `public`). A person copies it from **Show
-   invoke key** in the Host console and sets it as an app environment variable, for example
-   `PHOTOS_AMBASSADOR_KEY`. See "Who can call it" above.
+2. **Give the app the invoke key** (every mode except `public`). With both in one Solution:
+   `waymaker host ambassadors link-key <ambassador> --app <app> --env PHOTOS_AMBASSADOR_KEY`. The key
+   goes straight into the app's environment and is never shown. Otherwise a person copies it from
+   **Show invoke key** in the Host console. See "Who can call it" above.
 3. **Make a shared secret** as well: a long random value. Set the same value as an environment
    variable on the app *and* on the Ambassador, for example `PHOTOS_AMBASSADOR_SECRET`. Redeploy
    (or release) both.

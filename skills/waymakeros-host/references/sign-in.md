@@ -50,9 +50,52 @@ waymaker host db auth deploy <app>               # REQUIRED: a method change doe
 `methods --otp on` prints "Not in effect yet". Believe it: until you redeploy, the one-time-code
 routes do not exist and return 404.
 
-**Sign-up is open.** Anyone who can reach the sign-in address can create an account. With codes on,
-signing in with a code for an unknown email creates the account. Gate what an account can *see*
-with row-level security, not with the sign-up form.
+## Sign-up and email verification
+
+Two switches, set per app. Both apply on the next `auth deploy`.
+
+| Switch | Default | Off / on means |
+|---|---|---|
+| Sign-up | **On** | Off: nobody can create an account from the sign-in page, and a code for an unknown email creates nothing. Existing users sign in as before. |
+| Email verification | **On** for an app whose sign-in is first deployed now. **Off** (unchanged) for an app that already had sign-in. | On: sign-up emails a verification link and returns no session; an unverified user's sign-in is refused and the link is sent again. |
+
+```bash
+waymaker host db auth methods <app>                                # shows both
+waymaker host db auth deploy <app> --signup off                    # invite-only
+waymaker host db auth deploy <app> --require-verification on       # or: methods <app> --require-verification on, then deploy
+```
+
+**Never grant access because of the email on a session unless verification is on.** With it off, the
+email is whatever the person typed when they signed up. Authorise by a role your app sets on the
+server, or by a table of user ids you approve, and fail closed.
+
+### Sign-up off: how users get in
+
+- `waymaker host db auth invite <app> --email them@example.com [--role finance]` creates the
+  account with no password, and records who did it. Nothing is emailed by that step: tell them to
+  open your app and use **Forgot password** to set one (or sign in with a code, if codes are on).
+- Or your app's own server creates the row with the owner connection:
+  `INSERT INTO "user" ("id", "name", "email", "email_verified") VALUES (<new id>, <name>, lower(<email>), true)`.
+  That is the only write to the sign-in tables that is supported. Never write passwords, sessions
+  or accounts; the person sets their password through the reset flow.
+
+### Turning verification on for an app that already has users
+
+Every user whose email is not verified will be refused sign-in until they click the link. Do it in
+this order:
+
+1. `waymaker host db auth deploy <app>` (with verification still off) so the app runs the current
+   sign-in service. Users can now verify on their own (see the routes below).
+2. `waymaker host db auth verify-users <app>` lists who is unverified.
+3. Mark the ones you **know** are real: `waymaker host db auth verify-users <app> --mark a@x.com,b@y.com`.
+   Each one is recorded in `waymaker host db auth audit <app>`. `--all --confirm` marks everyone,
+   which vouches for addresses nobody has proven: only do it when you can account for every row.
+4. `waymaker host db auth deploy <app> --require-verification on`.
+
+Anyone left unverified is not locked out for good: their next password sign-in is refused with
+`EMAIL_NOT_VERIFIED` (403) and the link is sent to them. A session that already existed for an
+unverified user stops getting data access (its database token is anonymous, with
+`email_unverified: true`), so the app should send them to sign in again.
 
 ## The routes your app calls
 
@@ -114,8 +157,20 @@ no session, exactly as password sign-in does. See "Second factor" below.
 
 ### Email verification
 
-**Not required.** Accounts can sign in without verifying. Link-based verification is not available
-(`/send-verification-email` refuses). With codes on, you can verify with a code:
+The email contains a **link** to the sign-in service. Clicking it verifies the address and sends
+the person to your app (to the `callbackURL` your app passed, else the app's address).
+
+```
+POST /api/auth/sign-up/email              {name, email, password, callbackURL?}   # sends the link when verification is on
+POST /api/auth/send-verification-email    {email, callbackURL?}                   # send (or re-send) it any time
+```
+
+- With verification **on**, sign-up answers `token: null` (no session) and a refused sign-in answers
+  403 with code `EMAIL_NOT_VERIFIED`. Show "check your email" for both, with a re-send button that
+  calls `send-verification-email`.
+- `callbackURL` must be one of the app's own addresses.
+- The link is valid for an hour.
+- With codes on, you can also verify with a code:
 
 ```
 POST /api/auth/email-otp/send-verification-otp   {email, type: "email-verification"}
@@ -172,7 +227,7 @@ it; anyone else is refused.
 
 ## Where the emails come from
 
-Sign-in codes, reset and verification emails are sent **by the platform, from its own sender, with
+Sign-in codes, reset emails and verification links are sent **by the platform, from its own sender, with
 your app's name as the display name** (subjects such as "Reset your <App> password").
 
 - They **do not use your app's sending domain**, and they need **no DNS work by anyone**. They work
@@ -190,6 +245,8 @@ App email (receipts, notifications) is different and does use a sending domain. 
 Each of these saves and reports success, then does nothing until the next `auth deploy`:
 
 - `methods --otp on|off`
+- `methods --signup on|off` and `methods --require-verification on|off` (or pass the same flags to
+  `auth deploy`, which saves and applies them in one step)
 - adding or changing the app's custom domain (the sign-in service only accepts requests from the
   app's addresses as of its last deploy, so a new domain's sign-in requests are refused until then)
 

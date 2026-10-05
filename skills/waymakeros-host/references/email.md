@@ -94,6 +94,10 @@ waymaker host email domain list [--app <app-id>]
 waymaker host email status <send-id>
 waymaker host email health <app-id>
 waymaker host email quota [--app <app-id>]
+waymaker host email key create <app-id> [--env NAME | --show]   # the app's own sending key (see below)
+waymaker host email key rotate <app-id> [--env NAME | --show]
+waymaker host email key revoke <app-id> --confirm
+waymaker host email key list <app-id>
 ```
 
 All take `--json`. The MCP tools are `host_email_*`.
@@ -118,7 +122,35 @@ unless the mail really is for several people.
 Send from your app's **server** (a route), never from the browser. A confirmation email is a route
 that calls Host transactional email. It does not need an Ambassador.
 
-**The app has no email credential of its own yet.** A send is authorised as a Waymaker user or API
-key in the organisation, the same as the CLI. Sending from app code therefore means holding a
-Waymaker API key in the app's server-side environment. Before you do that in a client's app, ask
-Waymaker which key and endpoint to use.
+**Give the app its own sending key.** It can send this app's email, read this app's send status and
+health, and do nothing else: not another app's mail, not any other Host or Commander action. Never
+put a person's Waymaker API key in an app to send mail.
+
+```bash
+waymaker host email key create <app-id>     # puts it in the app's env as WAYMAKER_EMAIL_KEY, never shows it
+waymaker host apps deploy <app-id>          # the app sees the variable after its next deploy
+```
+
+Then, from the app's server:
+
+```
+POST https://apps.waymakerone.com/functions/v1/host-transactional-email
+Authorization: Bearer $WAYMAKER_EMAIL_KEY
+Content-Type: application/json
+
+{"action": "send", "data": {"to": "customer@example.com", "subject": "Your receipt", "text": "…", "html": "…", "from_local_part": "receipts"}}
+```
+
+`data.app_id` can be left out: the key decides the app. Naming any other app, or calling any other
+action, answers 404.
+
+- **Putting it in the env is the default and the safe path.** `--env NAME` picks another variable.
+  Names starting with `_`, and browser-bundle prefixes such as `VITE_` or `NEXT_PUBLIC_`, are refused,
+  because the key must stay on the server. `--show` prints it once instead (for a server hosted
+  somewhere else); store it then, it is never shown again.
+- **One key per app.** `rotate` replaces it and the old key stops working **at once**, so redeploy the
+  app straight after. `revoke` stops it and removes it from the env.
+- Creating, rotating and revoking need the owner or releaser role on the app's Solution (for an app
+  in no Solution: its creator or an organisation admin).
+- The MCP tools are `host_email_key_create`, `_rotate`, `_revoke` and `_list`. Through MCP the key
+  always goes into the app's env and is never returned.
