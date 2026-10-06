@@ -152,5 +152,13 @@ action, answers 404.
   app straight after. `revoke` stops it and removes it from the env.
 - Creating, rotating and revoking need the owner or releaser role on the app's Solution (for an app
   in no Solution: its creator or an organisation admin).
+- **A key lasts only as long as its creator's access.** When the person who created it leaves the
+  organisation, or loses the owner or releaser role on the Solution:
+  - a key that was **shown** to them (`--show`) stops working at its next use, and the
+    organisation's owners are emailed;
+  - a key that only ever went into the app's env is **rotated** at its next use: a new key goes into
+    the same variable, the old one keeps working for 72 hours, and the owners are emailed to
+    redeploy the app within that time.
+  This is one more reason to prefer the env: a shown key can stop without warning when someone leaves.
 - The MCP tools are `host_email_key_create`, `_rotate`, `_revoke` and `_list`. Through MCP the key
   always goes into the app's env and is never returned.

@@ -170,6 +170,26 @@ POST /api/auth/send-verification-email    {email, callbackURL?}                 
   calls `send-verification-email`.
 - `callbackURL` must be one of the app's own addresses.
 - The link is valid for an hour.
+
+**Verifying an email requires the password chosen by the mailbox owner.** A password set before the
+address was verified does not survive verification: when an address is verified (by link or by
+code) for the first time, that password stops working, every session the account had ends, and an
+authenticator set up before then is removed. The person who opened the email chooses the password.
+This applies whether verification is required or not.
+
+- The link lands on your app (the `callbackURL`) with a `set_password_token` query parameter. Your
+  landing page must check for it and show **"Choose your password"**, then call
+  `POST /api/auth/reset-password {newPassword, token}` with that value as `token`. Then sign in as
+  usual.
+- The token is valid for an hour, and it still works if a mail scanner opened the link first.
+- Treat it like a password: read it, then remove it from the address bar (`history.replaceState`),
+  and keep third-party scripts and outbound links off that page.
+- Without that page, a new user verifies, then finds the password they typed at sign-up refused.
+  They can still get in with **Forgot password**, so nobody is locked out, but build the page.
+- A password reset (by token or by code) also verifies the address, and it ends every other session
+  the account had.
+- An app gets this behaviour on its next `waymaker host db auth deploy <app>`. Add the landing page
+  before that deploy.
 - With codes on, you can also verify with a code:
 
 ```
@@ -177,7 +197,9 @@ POST /api/auth/email-otp/send-verification-otp   {email, type: "email-verificati
 POST /api/auth/email-otp/verify-email            {email, otp}
 ```
 
-Signing in with a code, or resetting with a code, also marks the email verified.
+Signing in with a code, or resetting the password, also marks the email verified. Verifying with a
+code follows the same password rule as the link: the user then sets a password through the reset
+flow (or keeps signing in with codes).
 
 A code allows 3 wrong attempts. Then request a new one.
 
