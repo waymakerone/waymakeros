@@ -180,7 +180,7 @@ lost, including anything that goes with it.
 | Call | Undo with |
 |---|---|
 | `commander_notes_delete` (moves the note to `archive/`) | `commander_notes_restore` |
-| `commander_notes_update` | `commander_notes_history`, then `commander_notes_restore_version` (last 50 versions) |
+| `commander_notes_update` | `commander_notes_history`, then `commander_notes_restore_version` (last 50 versions; `truncated: true` means older history exists, so the oldest entry is not the note's creation) |
 | `commander_document_update` with `status: archived` | `commander_document_update` with `status: private` or `published` |
 | `commander_email_move` / `commander_shared_inbox_move` | Move it back. A shared-inbox move takes the whole thread. |
 | `commander_role_assign` with `action: unassign` | `commander_role_assign` |
