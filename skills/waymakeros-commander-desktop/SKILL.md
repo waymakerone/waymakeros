@@ -87,6 +87,11 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   terminals** as environment variables.
 - **A terminal sees only the secrets that existed when it started.** If the person adds one, ask
   them to open a new terminal. Don't ask them to paste the value to you.
+- **To use a secret added after this terminal started**, run a command through
+  `commander secret NAME -- command [args]`. Commander asks the person, in a sheet you can't answer,
+  every time; if they allow it, the value is in that one command's environment and is never printed.
+  "No secret NAME is available" means it is unavailable right now or not found (this repository has no such secret, it isn't shared with it, secrets are off in this terminal, you are in a pause after refusals, or another question is already open); Commander says the same thing for every one of those on purpose, so don't guess which; "you did not allow" means stop and tell them what you needed it for. Two refusals in a row
+  pause further asks for five minutes. Never try to print the value.
 - **Check before you rely on one.** Test that the variable is present and not empty
   (`[ -n "${NAME:-}" ]`), without printing it. If it is absent or empty, **stop and say so**: the
   secret was added after this terminal started, was never given to this repository, or is empty.
