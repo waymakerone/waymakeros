@@ -87,11 +87,23 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   terminals** as environment variables.
 - **A terminal sees only the secrets that existed when it started.** If the person adds one, ask
   them to open a new terminal. Don't ask them to paste the value to you.
+- **Check before you rely on one.** Test that the variable is present and not empty
+  (`[ -n "${NAME:-}" ]`), without printing it. If it is absent or empty, **stop and say so**: the
+  secret was added after this terminal started, was never given to this repository, or is empty.
+  Never carry on with a blank, and never report success on a step that used one.
+- **Desktop refuses an empty secret** and tells the terminal when one can't be loaded; a terminal
+  banner saying a secret "is empty or could not be read" means you do not have it.
 - Shared secrets reach a repository only if the person ticked it. A repository's own secret wins
   over a shared one. A shared secret gives way to the repository's own `.env` unless the person
   chose to override it.
-- **Never write a secret's value into a file**, including `.env`, a commit or a note. If the code
-  needs it, read it from the environment.
+- **Never write a secret's value into a file yourself**, including `.env`, a commit or a note. If the
+  code needs it, read it from the environment. Don't copy a variable into a `.env` with a shell
+  command: run outside a Commander terminal, or in a terminal that lacks the variable, it writes a
+  blank line and looks as if it worked.
+- **When a tool reads a `.env` file itself** (Docker Compose, a build tool, a script), the person writes
+  the value in Commander: Explorer, **Show ignored files**, open the `.env`, **Write to .env**.
+  Desktop refuses a file git would commit, writes it readable by the person only, and refuses an
+  empty value. Ask them to do that; don't do it for them.
 - **Background Claude sessions get no secrets and no project variables.** They're opt-in, per
   repository. If something works in a normal terminal but not in a background session, this is
   why.
