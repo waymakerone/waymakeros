@@ -98,6 +98,10 @@ waymaker host solution release status <release-id>
 one Solution. Add other pieces (an Ambassador, a bucket, a domain) to the app's Solution with
 `solution surface add <slug> --kind <kind> --id <id>`.
 
+**Replace the stock favicon when you scaffold.** `create-next-app` ships a stock framework icon as
+`app/favicon.ico`. Replace it with the client's icon, or delete it so Host serves the Waymaker icon. To
+set an icon without a rebuild, run `waymaker host apps icon <app> ./icon.png` (PNG or ICO only, never SVG).
+
 **In the app, use `@waymakeros/db`, not `pg`.** `pg` does not bundle for this runtime. Open the
 connection inside each request; a pool held across requests hangs some requests and not others.
 
