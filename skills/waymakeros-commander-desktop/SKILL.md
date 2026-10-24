@@ -106,7 +106,7 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   command: run outside a Commander terminal, or in a terminal that lacks the variable, it writes a
   blank line and looks as if it worked.
 - **When a tool reads a `.env` file itself** (Docker Compose, a build tool, a script), the person writes
-  the value in Commander: Explorer, **Show ignored files**, open the `.env`, **Write to .env**.
+  the value in Commander: **Secrets**, the **.env** button on the secret's row, then the file. (Or Explorer, **Show ignored files**, open the `.env`, **Write to .env**.)
   Desktop refuses a file git would commit, writes it readable by the person only, and refuses an
   empty value. Ask them to do that; don't do it for them.
 - **Background Claude sessions get no secrets and no project variables.** They're opt-in, per
