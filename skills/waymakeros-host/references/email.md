@@ -47,9 +47,13 @@ client's IT adds them, then you run `verify`.
 
 ## The model
 
-- **One sending address per app.** It is either the ready-made one or a custom domain. A second
-  `register` for the same app is refused, and there is no command to swap it. Ask Waymaker if it has
-  to change.
+- **One sending address per app at a time.** It is either the ready-made one or a custom domain. A
+  second `register` for the same app is refused. To change it, an org admin who owns the app's
+  Solution runs `waymaker host email domain remove <domain-id> --confirm <domain> --replace-with
+  <new-domain>`: the old domain is released (its send history stays), the new one is registered in
+  the same step, and sign-in emails go from the platform address until the new one verifies. Without
+  `--replace-with`, the app's next email re-creates the ready-made address. Register a custom domain
+  **before** the first send if you can: that avoids the switch entirely.
 - **It is a paid capability, metered per accepted send.** It is charged to the Solution's owner when
   the sending domain is attached to the Solution, otherwise to whoever sends. Never quote a price;
   rates are at https://waymakeros.com/pricing. An account that cannot pay gets 402 on `send` and
@@ -91,6 +95,7 @@ waymaker host email domain register <app-id> [<domain>]   # no domain: show the 
 waymaker host email domain verify <domain-id>             # re-checks a custom domain's DNS and SAVES the result
 waymaker host email domain get <domain-id>                # reads the saved status only
 waymaker host email domain list [--app <app-id>]
+waymaker host email domain remove <domain-id> --confirm <domain> [--replace-with <domain>]   # org admin + Solution owner; ~15 s
 waymaker host email status <send-id>
 waymaker host email health <app-id>
 waymaker host email quota [--app <app-id>]
