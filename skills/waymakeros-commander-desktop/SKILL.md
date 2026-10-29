@@ -92,6 +92,9 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   every time; if they allow it, the value is in that one command's environment and is never printed.
   "No secret NAME is available" means it is unavailable right now or not found (this repository has no such secret, it isn't shared with it, secrets are off in this terminal, you are in a pause after refusals, or another question is already open); Commander says the same thing for every one of those on purpose, so don't guess which; "you did not allow" means stop and tell them what you needed it for. Two refusals in a row
   pause further asks for five minutes. Never try to print the value.
+  If the person has given a standing approval for that secret in this repository, the sheet is skipped
+  until it ends (at most 8 hours, and when Commander quits); you don't need to ask them again, and
+  you can't create one yourself.
 - **Check before you rely on one.** Test that the variable is present and not empty
   (`[ -n "${NAME:-}" ]`), without printing it. If it is absent or empty, **stop and say so**: the
   secret was added after this terminal started, was never given to this repository, or is empty.
@@ -109,9 +112,15 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   the value in Commander: **Secrets**, the **.env** button on the secret's row, then the file. (Or Explorer, **Show ignored files**, open the `.env`, **Write to .env**.)
   Desktop refuses a file git would commit, writes it readable by the person only, and refuses an
   empty value. Ask them to do that; don't do it for them.
-- **Background Claude sessions get no secrets and no project variables.** They're opt-in, per
-  repository. If something works in a normal terminal but not in a background session, this is
-  why.
+- **A Claude session Commander keeps running (the repository's "Keep Claude sessions running when
+  Commander quits") gets no secrets in its environment**, only the project ids. It is an ordinary terminal
+  in Commander's terminal host, with its own process and environment, so `commander secret NAME -- command`
+  works in it and the person approves each use (or has given an 8-hour approval). If something works in a
+  normal terminal but not in a kept session, this is why: ask for it that way, don't look for the variable.
+  Only a bare `claude` start is kept this way: a start command with its own flags (`claude --resume`) runs
+  as typed and does get the secrets. A session started with `claude --bg` outside Commander is not under a
+  Commander shell, so `commander secret` can't tell who is asking and refuses; and once Commander quits
+  there is no helper to ask.
 
 ## My Vault in Desktop
 
