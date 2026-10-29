@@ -95,6 +95,20 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   If the person has given a standing approval for that secret in this repository, the sheet is skipped
   until it ends (at most 8 hours, and when Commander quits); you don't need to ask them again, and
   you can't create one yourself.
+- **To call a web service with a key you must not hold, use a Connection:** `commander call --list`
+  shows this repository's Connections (name, methods, address, paths), then
+  `commander call NAME GET /v1/places/42?x=1` (add `--header 'accept: application/json'`, and
+  `--data @file` or `--data -` for a POST). Commander adds the key, makes the request and gives you the
+  response with the key taken out; you never see it, so never try to put it in a request yourself.
+  You choose only the method, a path inside what the Connection allows, a query and a body; the host,
+  the credential and every header except `accept` and `content-type` are Commander's. The person
+  approves each call in a sheet you can't answer; for GET and HEAD they may give 8 hours, but anything
+  that sends data (a POST, a body) asks every time. "No Connection NAME is available" means it is
+  unavailable right now or not found, said the same way for every cause on purpose; a request the
+  Connection doesn't allow is explained. You can't create or change a Connection: only the person can,
+  in Secrets, so if you need one, say which service, which paths and which secret. Never edit the
+  Connections file yourself: a record changed outside Commander stops working (it shows as needing
+  confirmation in Secrets), and any approval for the old one ends.
 - **Check before you rely on one.** Test that the variable is present and not empty
   (`[ -n "${NAME:-}" ]`), without printing it. If it is absent or empty, **stop and say so**: the
   secret was added after this terminal started, was never given to this repository, or is empty.
