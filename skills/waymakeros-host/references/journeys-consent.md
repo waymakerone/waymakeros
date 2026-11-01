@@ -59,6 +59,10 @@ if (res.status === 429 || res.status === 503) return retryLater(batch, Number(re
 - **Every address needs a note**, its own or the call's (up to 200 characters). No note is a 400 `note_required`.
 - **`unchanged` means something already stands.** `outcome` says what: an existing complaint stays a complaint;
   you cannot overwrite it.
+- **Tell the admin what the write grant allows before they add it.** The results show whether any address
+  was already suppressed and why (a complaint included), even without the read grant, and submitting an
+  address suppresses it. It can also suppress again an address an admin reinstated (Journeys keeps the
+  history). Capped at 5,000 an hour.
 - **Your writes come back in the feed** with `source: app:<your app id>`. Skip them there.
 
 ## Traps
