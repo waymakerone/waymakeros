@@ -1,16 +1,18 @@
 # Journeys consent: keeping an app's opt-outs in step
 
 An app (a CRM, say) can read its organisation's Journeys suppression list: every address Journeys must
-not mail, and why. Full reference: https://docs.waymakerone.com/host/journeys-suppressions
+not mail, and why. It can also add addresses, so Journeys stops mailing people who opted out in the app.
+Full reference: https://docs.waymakerone.com/host/journeys-suppressions
 
 ## Before you write any code
 
-- **The grant is `journeys:suppressions:read`, by name.** `*` does not include it. Only an **org admin**
-  can add it, so if you are not one, ask them; do not work around it. Check what the app holds with the MCP
+- **The grants are `journeys:suppressions:read` and `journeys:suppressions:write`, by name.** `*` does not
+  include them and neither includes the other. Only an **org admin** can add them, so if you are not one,
+  ask them; do not work around it. Check what the app holds with the MCP
   tool `host_app_get` (`commander_permissions`).
 - **Adding it replaces the list.** `--commander-permissions` sets the whole list, so include what the app
   already has: `waymaker host apps update <app-id> --commander-permissions "team_ids,journeys:suppressions:read"`.
-- **It is read-only.** Nothing through this API lifts a suppression. If a person wants mail again, they
+- **An app can only suppress.** Nothing through this API lifts a suppression. If a person wants mail again, they
   opt back in through a Journeys form, or an admin reinstates them in Journeys. The feed then shows it.
 
 ## The call
@@ -37,7 +39,27 @@ for (;;) {
   if (!page.has_more) break
 }
 // Run again every few minutes from the saved cursor. An empty page still returns `next`.
+// Once a day, also run it from no cursor to the end (skipping event_ids already applied): a change that
+// took long to save can, rarely, land just behind a cursor already handed out.
 ```
+
+## Suppressing from the app
+
+`{ "action": "journeys_suppress", "data": { "addresses": [{ "email", "note?" }], "note": "why" } }`, with the
+app's own context key (a person's token or the old env key is refused).
+
+```js
+const res = await call('journeys_suppress', { addresses: batch.map((email) => ({ email })), note: 'opted out in the CRM' })
+if (res.status === 429 || res.status === 503) return retryLater(batch, Number(res.headers.get('Retry-After')) || 30) // nothing was written
+// 200: { results: [{ email, status: created|unchanged|resuppressed|invalid, id?, outcome? }], counts }
+```
+
+- **Up to 500 addresses a call, 5,000 per app per hour.** Over either, the whole call is refused and nothing is
+  written. Retry the same batch; sending it twice is safe (the second time it is all `unchanged`).
+- **Every address needs a note**, its own or the call's (up to 200 characters). No note is a 400 `note_required`.
+- **`unchanged` means something already stands.** `outcome` says what: an existing complaint stays a complaint;
+  you cannot overwrite it.
+- **Your writes come back in the feed** with `source: app:<your app id>`. Skip them there.
 
 ## Traps
 
