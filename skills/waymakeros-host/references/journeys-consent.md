@@ -12,8 +12,8 @@ Full reference: https://docs.waymakerone.com/host/journeys-suppressions
   tool `host_app_get` (`commander_permissions`).
 - **Adding it replaces the list.** `--commander-permissions` sets the whole list, so include what the app
   already has: `waymaker host apps update <app-id> --commander-permissions "team_ids,journeys:suppressions:read"`.
-- **An app can only suppress.** Nothing through this API lifts a suppression. If a person wants mail again, they
-  opt back in through a Journeys form, or an admin reinstates them in Journeys. The feed then shows it.
+- **These grants only suppress.** A person who wants mail again opts back in through a Journeys form, or an admin
+  reinstates them in Journeys. If they opt back in through the app, see "Reinstating consent" below: its own grant.
 
 ## The call
 
@@ -74,7 +74,7 @@ Each change arrives as a signed POST whose body is the feed's entry (`id`, `emai
 `source`, `journey_id`, `occurred_at`), verified as shared inbox events are.
 
 - **Keep the daily poll.** Push is at least once, unordered, kept 7 days. The feed is the record.
-- **Your own suppressions are not pushed back to you**; reinstatements always are.
+- **Your own suppressions are not pushed back to you**; reinstatements always are, your app's own included.
 - **Other subscribers see the writer**: `source` is `app:<app id>` of the app that wrote the change.
 - **Apply as state**, newest `occurred_at` per `id` wins. Push and feed `event_id`s differ.
 - `waymaker host apps events list <app-id>` shows `org_enqueue_failures_7d`; above 0, read the feed.
@@ -123,3 +123,23 @@ Full reference: https://docs.waymakerone.com/host/journeys-audience
   results are identical whether or not the person unsubscribed, bounced or is suppressed; for mail state, read the
   suppression list.
 - 500 a call, 5,000 per app per hour; a 429 has `Retry-After` and wrote nothing.
+
+## Reinstating consent
+
+Full reference: https://docs.waymakerone.com/host/journeys-consent
+
+- **Only for a person who opted back in through the app, expressly.** `journeys_consent_reinstate` with
+  `{ members: [{ email, basis: "express_opt_in", consented_at, note }] }`, the context key only. The grant is
+  `journeys:consent:reinstate`, by name, org admin only, never through `*`; ask the admin, do not work around it.
+- **The person must be on a canvas the app writes** (`journeys:audience:write:<canvas id>`). That guards against
+  mistakes, not abuse: an app with both grants can reinstate any eligible address it presents newer consent for, which
+  is why both are admin-only. Only reinstate people who consented to you.
+- **`not_lifted` is one bare answer** for a stale consent, a complaint, a hard bounce, someone else's manual
+  suppression or a person not on your canvas. Do not retry it, and do not try to tell the cases apart.
+- **`consented_at` is when the person consented, not when you call**: ISO 8601 with an offset or `Z`. It must be later
+  than their latest opt-out, reinstatement and your last recorded consent for them. Never "fix" a `not_lifted` by
+  sending the current time: that records a consent the person did not give at that moment.
+- **The note is required** (200 characters, no address): how they opted in. It is kept in Journeys' history, not in
+  the feed or pushed events.
+- `unchanged` means nothing to lift. A retry after `reinstated` answers it, or `not_lifted` if they opted out again
+  meanwhile. 100 a call, 1,000 per app per hour.
