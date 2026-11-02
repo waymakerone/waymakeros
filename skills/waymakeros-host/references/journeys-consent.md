@@ -1,5 +1,12 @@
 # Journeys consent: keeping an app's opt-outs in step
 
+**Setting it up from nothing?** The worked example is
+https://docs.waymakerone.com/host/journeys-connect-your-app. The order is: canvas (copy its id) → context key
+(`waymaker host apps context-key create <app-id>`, then deploy) → an org admin adds the grants → pull, suppress,
+upsert/archive, reinstate → a scheduled Ambassador (`--schedule "*/15 * * * *"`) calls a secret-guarded sync route in
+the app. Every call is `Authorization: Bearer $WAYMAKER_CONTEXT_KEY`; `X-API-Key` + `X-App-Id` is the deprecated older
+path, and every Journeys write refuses it.
+
 An app (a CRM, say) can read its organisation's Journeys suppression list: every address Journeys must
 not mail, and why. It can also add addresses, so Journeys stops mailing people who opted out in the app.
 Full reference: https://docs.waymakerone.com/host/journeys-suppressions
@@ -110,6 +117,11 @@ Each change arrives as a signed POST whose body is the feed's entry (`id`, `emai
 ## Putting the app's people on a canvas
 
 Full reference: https://docs.waymakerone.com/host/journeys-audience
+
+- **Creating the canvas and finding its id:** in Commander, Journeys → new canvas → **Canvas Settings** shows
+  **Canvas ID** and copies the grant name. Or MCP `commander_journey_canvas_create` / `commander_journey_canvas_list`
+  (`waymaker journeys canvases create|list` from the next CLI release). One
+  canvas per app: an app only ever changes the memberships it created.
 
 - **The grant is per canvas: `journeys:audience:write:<canvas id>`**, added by an org admin, never through `*`.
 - **The context key only**, `journeys_audience_upsert` / `journeys_audience_archive` with
