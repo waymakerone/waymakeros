@@ -126,8 +126,8 @@ Pass `--dir db/migrations` so both read the same files; both record a file by it
 A database, app compute and email all cost someone money. Say so before you create them.
 
 - **Billing is moving to per Solution, and is rolling out.** Each Solution will be billed on its
-  own: one free start per paid seat (once, not monthly, shared across the organisation's
-  Solutions), and a card added on the Solution when it is created or when the free start runs out.
+  own: included credits for each paid seat (once, not monthly, shared across the organisation's
+  Solutions), and a card added on the Solution when it is created or when the included credits run out.
   **Until a Solution's page in Host asks for a card, do not tell the user to add one** — today, Host
   usage draws on the organisation's credits.
 - **When a database stops answering or deploys start being refused**, run
