@@ -75,6 +75,7 @@ Each change arrives as a signed POST whose body is the feed's entry (`id`, `emai
 
 - **Keep the daily poll.** Push is at least once, unordered, kept 7 days. The feed is the record.
 - **Your own suppressions are not pushed back to you**; reinstatements always are.
+- **Other subscribers see the writer**: `source` is `app:<app id>` of the app that wrote the change.
 - **Apply as state**, newest `occurred_at` per `id` wins. Push and feed `event_id`s differ.
 - `waymaker host apps events list <app-id>` shows `org_enqueue_failures_7d`; above 0, read the feed.
 
