@@ -106,3 +106,20 @@ Each change arrives as a signed POST whose body is the feed's entry (`id`, `emai
 
 **Not in the feed:** the campaign (`journey_id`) for entries recorded before November 2026 (it is
 `null`); a bounce below the threshold; opens and clicks.
+
+## Putting the app's people on a canvas
+
+Full reference: https://docs.waymakerone.com/host/journeys-audience
+
+- **The grant is per canvas: `journeys:audience:write:<canvas id>`**, added by an org admin, never through `*`.
+- **The context key only**, `journeys_audience_upsert` / `journeys_audience_archive` with
+  `{ canvas_id, members: [...] }`; each upsert member needs `email` and `lawful_basis` (not `none`;
+  `legitimate_interest_b2b` needs `contact_type: "business"`).
+- **Your own memberships only.** Someone else's comes back `not_owned` and is untouched. Your own answer the same
+  (`created`, `updated`, `unchanged`, `archived`) whatever their mail state; an opt-out or a bounce is never lifted.
+  Archive is never an unsubscribe. To learn who opted out, read the suppression list (its own grant).
+- **A membership is not permission to mail.** Each send checks the basis again, the person's own opt-out and the
+  suppression list. For someone who already opted out, `created` records a membership that is not mailable. Your
+  results are identical whether or not the person unsubscribed, bounced or is suppressed; for mail state, read the
+  suppression list.
+- 500 a call, 5,000 per app per hour; a 429 has `Retry-After` and wrote nothing.

@@ -29,7 +29,7 @@ and several of the failures are **silent**. Load a reference page when the job r
 | Ambassadors: deploy, env, schedules, logs, calling one from the app | [references/ambassadors.md](references/ambassadors.md) |
 | The client's own domain on the app | [references/domains.md](references/domains.md) |
 | Tests that touch a database | [references/testing.md](references/testing.md) |
-| Keeping the app's opt-outs in step with Journeys (unsubscribes, bounces, complaints) | [references/journeys-consent.md](references/journeys-consent.md) |
+| Keeping the app's opt-outs in step with Journeys (unsubscribes, bounces, complaints), or putting its people with consent on a Journeys canvas | [references/journeys-consent.md](references/journeys-consent.md) |
 
 ## Before anything
 
