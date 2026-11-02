@@ -65,6 +65,19 @@ if (res.status === 429 || res.status === 503) return retryLater(batch, Number(re
   history). Capped at 5,000 an hour.
 - **Your writes come back in the feed** with `source: app:<your app id>`. Skip them there.
 
+## Being pushed changes
+
+Subscribe the app (org admin only) with MCP `host_app_event_subscribe`
+`{ app_id, source: "journeys", url, event_types: ["suppression.changed"] }`. The app needs only
+`journeys:suppressions:read`. The secret is shown once: store it with `waymaker host apps env set` at once.
+Each change arrives as a signed POST whose body is the feed's entry (`id`, `email`, `outcome`, `reason`,
+`source`, `journey_id`, `occurred_at`), verified as shared inbox events are.
+
+- **Keep the daily poll.** Push is at least once, unordered, kept 7 days. The feed is the record.
+- **Your own suppressions are not pushed back to you**; reinstatements always are.
+- **Apply as state**, newest `occurred_at` per `id` wins. Push and feed `event_id`s differ.
+- `waymaker host apps events list <app-id>` shows `org_enqueue_failures_7d`; above 0, read the feed.
+
 ## Traps
 
 - **`id` repeats; `event_id` does not.** An address that is reinstated and then suppressed again comes
