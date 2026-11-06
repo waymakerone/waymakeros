@@ -73,7 +73,7 @@ waymaker host apps create <name> \
   --framework <framework> \
   --runtime <server|static> \
   --build-command "npm run build" \
-  --type <cx|ex>                       # PERMANENT — see below
+  --type <cx|ex>                       # cx = public visitors, ex = signed-in users only
 
 # 2. The database. --region is PERMANENT. It joins the app's Solution automatically.
 waymaker host db create <app> --region <syd|sin|fra|lon|iad>
@@ -113,11 +113,11 @@ Pass `--dir db/migrations` so both read the same files; both record a file by it
 
 ## The three permanent decisions
 
-**Decide these before step 1. None can be changed afterwards.**
+**Decide these before step 1. Region and framework cannot be changed afterwards; the type can (see its row), but a wrong one locks visitors out until you do.**
 
-| Flag | Default | Why it is permanent |
+| Flag | Default | Why it matters |
 |---|---|---|
-| `--type` | **`ex`** | `ex` requires an authenticated Waymaker user on **every request** — anonymous visitors get 401. `cx` authenticates optionally and never refuses. **An update that names the type is ignored, not rejected.** If your app has any public page — a sign-in page, a share link, a public listing — you need `cx`. |
+| `--type` | **`ex`** | `ex` requires an authenticated Waymaker user on **every request** — anonymous visitors get 401. `cx` authenticates optionally and never refuses. If your app has any public page — a sign-in page, a share link, a public listing — you need `cx`. You can change it later with `waymaker host apps update --type`, but pick it now: a wrong `ex` locks every visitor out until you do. |
 | `--region` | **`iad` (US East)** | Region is fixed for the life of the database. **An unset region silently places customer data in the United States.** For an Australian customer, pass `--region syd`. A data-residency outcome must never be produced by a default. |
 | `--framework` | none | Detected per deploy from the repo, but the container records what you declare. |
 
@@ -188,11 +188,11 @@ variables; an Ambassador's schedule; sign-in methods (`db auth methods`), which 
 
 `waymaker host solution get <slug> --json` shows `release_policy` (the plain-text output does not).
 
-- **`release`** is the default for every Solution created since 4 October 2026 — including the one
-  `apps create` makes. A push builds a **staged** copy; production changes **only** through a
-  release.
-- **`push`** is what older Solutions have, unless their owner switched. A push deploys straight to
-  production (failure 4).
+- **`push`** is the default for a new Solution (since migration 261190; from 4 October to
+  6 November 2026 new Solutions defaulted to `release`) — including the one `apps create` makes. A
+  push deploys straight to production (failure 4).
+- **`release`** is what a Solution created in that window has, unless its owner switched. A push
+  builds a **staged** copy; production changes **only** through a release.
 - **Only a Solution owner can switch**, in the Solution's settings in Host. There is no CLI command
   or MCP tool for it. Switching back to `push` removes the Solution's staged builds.
 
