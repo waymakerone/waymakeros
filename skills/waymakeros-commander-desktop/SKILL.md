@@ -133,7 +133,7 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
 - **Saving a secret for this repository in Commander also writes it to the repository's git-ignored `.env`**
   (or `.env.local` if `.env` isn't ignored; if neither is, nothing is written and Commander says why), and
   deleting it removes the line from both files, unless the person turned off "Keep .env in step with these
-  secrets" in Secrets. Shared and imported secrets aren't written. That file is plain text: don't print or
+  secrets" in Secrets. Shared secrets given to the repository are written too, unless the file already sets that name to its own value. Secrets saved before Commander kept .env in step, or while it was off, are written only when the person presses **Write them** in Secrets; ask them to, don't edit the file yourself. Importing from a file doesn't write anything by itself; **Write them** offers any of this repository's secrets the synced file lacks. That file is plain text: don't print or
   copy it.
 - **A Claude session Commander keeps running (the repository's "Keep Claude sessions running when
   Commander quits") gets no secrets in its environment**, only the project ids. It is an ordinary terminal
