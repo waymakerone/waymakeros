@@ -24,12 +24,16 @@ when you're running inside Desktop.
 ## Am I inside Desktop?
 
 ```bash
-printenv TERM_PROGRAM WAYMAKER_COMMANDER_PORT WAYMAKER_PROJECT_ID WAYMAKER_PROJECT_NAME
+echo "term=$TERM_PROGRAM project=$WAYMAKER_PROJECT_NAME id=$WAYMAKER_PROJECT_ID"
 ```
 
-- `TERM_PROGRAM=CommanderDesktop` or `WAYMAKER_COMMANDER_PORT` set → you're in a Commander
-  Desktop terminal.
-- `WAYMAKER_PROJECT_ID` set → this repository is **linked to a Commander project**. See below.
+- `term=CommanderDesktop` → you're in a Commander Desktop terminal. This is the signal to trust:
+  every Commander terminal has it, including one kept across a Commander restart.
+- Don't test for `WAYMAKER_COMMANDER_PORT`. A kept terminal deliberately doesn't have it, and the
+  `commander` helper finds the current port itself.
+- Don't use `printenv A B C`: macOS `printenv` takes one name, so with several it prints nothing and
+  you will wrongly conclude you're outside Desktop.
+- `id=` not empty → this repository is **linked to a Commander project**. See below.
 
 ## The model: three kinds of thing, three names
 
@@ -88,13 +92,13 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
 - **A terminal sees only the secrets that existed when it started.** If the person adds one, ask
   them to open a new terminal. Don't ask them to paste the value to you.
 - **To use a secret added after this terminal started**, run a command through
-  `commander secret NAME -- command [args]`. Commander asks the person, in a sheet you can't answer,
-  every time; if they allow it, the value is in that one command's environment and is never printed.
-  "No secret NAME is available" means it is unavailable right now or not found (this repository has no such secret, it isn't shared with it, secrets are off in this terminal, you are in a pause after refusals, or another question is already open); Commander says the same thing for every one of those on purpose, so don't guess which; "you did not allow" means stop and tell them what you needed it for. Two refusals in a row
-  pause further asks for five minutes. Never try to print the value.
-  If the person has given a standing approval for that secret in this repository, the sheet is skipped
-  until it ends (at most 8 hours, and when Commander quits); you don't need to ask them again, and
-  you can't create one yourself.
+  `commander secret NAME -- command [args]`. Commander hands that repository's saved (or shared)
+  secret to that one command without asking; the value is in that command's environment and is never
+  printed. "No secret NAME is available" means this repository has no such secret, it isn't shared with
+  it, secrets are off in this terminal, or this terminal has asked for five names it doesn't have and must
+  now wait five minutes (during the wait even real names are refused); Commander says the same thing
+  for each of those on purpose, so don't guess which.
+  Never try to print the value, and run only a command that needs it.
 - **To call a web service with a key you must not hold, use a Connection:** `commander call --list`
   shows this repository's Connections (name, methods, address, paths), then
   `commander call NAME GET /v1/places/42?x=1` (add `--header 'accept: application/json'`, and
@@ -126,10 +130,15 @@ Commander already has open. If it says to run it in a Commander terminal, you ar
   the value in Commander: **Secrets**, the **.env** button on the secret's row, then the file. (Or Explorer, **Show ignored files**, open the `.env`, **Write to .env**.)
   Desktop refuses a file git would commit, writes it readable by the person only, and refuses an
   empty value. Ask them to do that; don't do it for them.
+- **Saving a secret for this repository in Commander also writes it to the repository's git-ignored `.env`**
+  (or `.env.local` if `.env` isn't ignored; if neither is, nothing is written and Commander says why), and
+  deleting it removes the line from both files, unless the person turned off "Keep .env in step with these
+  secrets" in Secrets. Shared and imported secrets aren't written. That file is plain text: don't print or
+  copy it.
 - **A Claude session Commander keeps running (the repository's "Keep Claude sessions running when
   Commander quits") gets no secrets in its environment**, only the project ids. It is an ordinary terminal
   in Commander's terminal host, with its own process and environment, so `commander secret NAME -- command`
-  works in it and the person approves each use (or has given an 8-hour approval). If something works in a
+  works in it and gets that repository's secrets without asking. If something works in a
   normal terminal but not in a kept session, this is why: ask for it that way, don't look for the variable.
   Only a bare `claude` start is kept this way: a start command with its own flags (`claude --resume`) runs
   as typed and does get the secrets. A session started with `claude --bg` outside Commander is not under a
